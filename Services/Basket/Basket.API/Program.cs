@@ -1,3 +1,4 @@
+using BuildingBlocks.Messaging.MassTransit;
 using Discount.Grpc;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -45,6 +46,10 @@ builder.Services.AddHealthChecks()
     .AddRedis(redisConnectionString);
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+#endregion
+
+#region Async Communication Services
+builder.Services.AddMessageBroker(builder.Configuration);
 #endregion
 
 #region Grpc Services
