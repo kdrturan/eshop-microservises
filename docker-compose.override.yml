@@ -62,7 +62,8 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ConnectionStrings__Database=Server=catalogdb;Port=5432;Database=CatalogDb;Username=postgres;Password=postgres;Include Error Detail=true
     depends_on:
-      - catalogdb
+      catalogdb:
+        condition: service_healthy
     ports:
       - "6000:8080"
       - "6060:8081"
@@ -82,10 +83,14 @@ services:
       - MessageBroker__UserName=guest
       - MessageBroker__Password=guest
     depends_on:
-      - basketdb
-      - distributedcache
-      - discount.grpc
-      - messagebroker
+      basketdb:
+        condition: service_healthy  
+      distributedcache:
+        condition: service_started
+      discount.grpc:
+        condition: service_started
+      messagebroker:
+        condition: service_started
     ports:
       - "6001:8080"
       - "6061:8081"
@@ -119,11 +124,31 @@ services:
       - MessageBroker__Password=guest
       - FeatureManagement__OrderFullfilment=false
     depends_on:
-      - orderdb
-      - messagebroker
+      orderdb:
+        condition: service_healthy   
+      messagebroker:
+        condition: service_started
     ports:
       - "6003:8080"
       - "6063:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+  yarpapigateway:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+    depends_on:
+      - catalog.api
+      - basket.api
+      - ordering.api
+    ports:
+      - "6004:8080"
+      - "6064:8081"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
